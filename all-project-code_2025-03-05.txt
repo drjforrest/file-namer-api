@@ -1,0 +1,323 @@
+PROJECT INVENTORY 2025-03-05
+Project: 
+Timestamp: 2025-03-05 04:35:05
+Root Directory: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/
+
+--- README.md Contents ---
+# File-namer-api
+
+## Project Structure
+```
+File-namer-api/
+├── src/
+│   ├── app.py
+│   ├── models/
+│   │   ├── base_model.py
+│   │   └── user_model.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   └── user_routes.py
+│   ├── services/
+│   │   ├── base_service.py
+│   │   └── user_service.py
+│   └── utils/
+│       └── validation.py
+├── tests/
+├── docs/
+├── .env
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
+## Setup
+1. Create virtual environment:
+   ```
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+2. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. Run the application:
+   ```
+   python src/app.py
+   ```
+
+--- End of README.md ---
+
+--- Begin Project Code ---
+
+--- File: (Project Directory Structure) ---
+├── README.md 
+├── all-project-code_2025-03-05.txt 
+├── app 
+│   ├── __init__.py 
+│   ├── app.py 
+│   ├── models 
+│   │   └── project_model.py 
+│   ├── routes 
+│   │   ├── __init__.py 
+│   │   ├── file_routes.py 
+│   │   ├── llm_routes.py 
+│   │   └── project_routes.py 
+│   ├── services 
+│   │   ├── llm_service.py 
+│   │   └── project_service.py 
+│   └── utils 
+│       ├── db.py 
+│       └── validation.py 
+├── docs 
+├── requirements.txt 
+├── run.py 
+└── tests 
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/run.py (Timestamp: 2025-03-05 02:57:40) ---
+from app import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/run.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/__init__.py (Timestamp: 2025-03-05 02:48:25) ---
+from flask import Flask
+from app.utils.db import init_db
+from app.routes.project_routes import project_bp
+from app.routes.file_routes import file_bp
+from app.routes.llm_routes import llm_bp
+
+
+def create_app():
+    app = Flask(__name__)
+
+    # Initialize Database
+    init_db()
+
+    # Register Blueprints (Modular Routes)
+    app.register_blueprint(project_bp)
+    app.register_blueprint(file_bp)
+    app.register_blueprint(llm_bp)
+
+    return app
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/__init__.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/app.py (Timestamp: 2025-03-05 02:43:14) ---
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configure database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy
+db = SQLAlchemy(app)
+
+# Import routes after db initialization to avoid circular imports
+from routes import init_routes
+init_routes(app)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/app.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/utils/db.py (Timestamp: 2025-03-05 04:34:14) ---
+import sqlite3
+
+def get_db():
+    """Returns a database connection."""
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+def init_db():
+    """Initializes the database if it doesn't exist."""
+    with app.app_context():
+        db = get_db()
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/utils/db.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/utils/validation.py (Timestamp: 2025-03-05 02:43:14) ---
+def validate_email(email):
+    import re
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(email_regex, email) is not None
+
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/utils/validation.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/models/project_model.py (Timestamp: 2025-03-05 02:49:08) ---
+import sqlite3
+
+DATABASE = 'project_data.db'
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    return conn
+
+def create_project(project_id, month, year, seq):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO projects (project_id, month, year, seq) VALUES (?, ?, ?, ?)",
+                   (project_id, month, year, seq))
+    db.commit()
+    db.close()
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/models/project_model.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/llm_routes.py (Timestamp: 2025-03-05 02:55:30) ---
+from flask import Blueprint, request, jsonify
+from app.services.llm_service import infer_file_name
+
+llm_bp = Blueprint("llm_bp", __name__)
+
+@llm_bp.route('/infer_file_name', methods=['POST'])
+def infer_file_name_route():
+    data = request.json
+    short_title = data.get("short_title")
+
+    if not short_title:
+        return jsonify({"error": "Missing short_title"}), 400
+
+    file_name = infer_file_name(short_title)
+    return jsonify({"file_name": file_name}), 200
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/llm_routes.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/file_routes.py (Timestamp: 2025-03-05 02:54:31) ---
+from flask import Blueprint, request, jsonify
+import os
+
+file_bp = Blueprint("file_bp", __name__)
+
+
+@file_bp.route('/generate_file_path', methods=['POST'])
+def generate_file_path():
+    data = request.json
+    category = data.get("category")
+    project_id = data.get("project_id")
+
+    if not category or not project_id:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    file_path = f"/Users/drjforrest/Projects/{category}/{project_id}/project_file.txt"
+    return jsonify({"file_path": file_path}), 200
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/file_routes.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/__init__.py (Timestamp: 2025-03-05 02:43:14) ---
+def init_routes(app):
+    from .user_routes import user_bp
+    
+    app.register_blueprint(user_bp, url_prefix='/api/users')
+
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/__init__.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/project_routes.py (Timestamp: 2025-03-05 02:54:04) ---
+from flask import Blueprint, request, jsonify
+from app.services.project_service import generate_project_id
+
+project_bp = Blueprint("project_bp", __name__)
+
+@project_bp.route('/generate_project_id', methods=['POST'])
+def generate_project_id_route():
+    data = request.json
+    short_title = data.get("short_title")
+    date_added = data.get("date_added")
+
+    project_id, error_msg = generate_project_id(short_title, date_added)
+    if error_msg:
+        return jsonify({"error": error_msg}), 400
+
+    return jsonify({"project_id": project_id}), 200
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/routes/project_routes.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/services/project_service.py (Timestamp: 2025-03-05 02:53:18) ---
+import datetime
+from app.models.project_model import create_project, get_db
+
+def generate_project_id(short_title, date_added):
+    try:
+        date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%S.%fZ")
+        month, year = date_obj.strftime("%m"), date_obj.strftime("%Y")
+
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT MAX(seq) FROM projects WHERE month=? AND year=?", (month, year))
+        last_seq = cursor.fetchone()[0]
+        seq = 1 if last_seq is None else last_seq + 1
+
+        project_id = f"{seq:04}-{month}-{short_title}-{year}"
+        create_project(project_id, month, year, seq)
+
+        return project_id, None
+    except ValueError:
+        return None, "Invalid date format. Expected ISO format."
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/services/project_service.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/services/llm_service.py (Timestamp: 2025-03-05 02:54:59) ---
+import ollama
+
+def infer_file_name(short_title):
+    """Uses an LLM to infer a standardized file name based on the title."""
+    response = ollama.chat(model="mistral", messages=[
+        {"role": "system", "content": "You are a helpful assistant that formats file names."},
+        {"role": "user", "content": f"Generate a standardized file name for: {short_title}"}
+    ])
+    return response['message']['content']
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/app/services/llm_service.py ---
+
+--- File: /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/.venv/bin/activate_this.py (Timestamp: 2025-03-05 02:48:12) ---
+"""
+Activate virtualenv for current interpreter:
+
+Use exec(open(this_file).read(), {'__file__': this_file}).
+
+This can be used when you must use an existing Python interpreter, not the virtualenv bin/python.
+"""  # noqa: D415
+from __future__ import annotations
+
+import os
+import site
+import sys
+
+try:
+    abs_file = os.path.abspath(__file__)
+except NameError as exc:
+    msg = "You must use exec(open(this_file).read(), {'__file__': this_file}))"
+    raise AssertionError(msg) from exc
+
+bin_dir = os.path.dirname(abs_file)
+base = bin_dir[: -len("bin") - 1]  # strip away the bin part from the __file__, plus the path separator
+
+# prepend bin to PATH (this file is inside the bin directory)
+os.environ["PATH"] = os.pathsep.join([bin_dir, *os.environ.get("PATH", "").split(os.pathsep)])
+os.environ["VIRTUAL_ENV"] = base  # virtual env is right above bin directory
+os.environ["VIRTUAL_ENV_PROMPT"] = "" or os.path.basename(base)  # noqa: SIM222
+
+# add the virtual environments libraries to the host python import mechanism
+prev_length = len(sys.path)
+for lib in "../lib/python3.11/site-packages".split(os.pathsep):
+    path = os.path.realpath(os.path.join(bin_dir, lib))
+    site.addsitedir(path.decode("utf-8") if "" else path)
+sys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]
+
+sys.real_prefix = sys.prefix
+sys.prefix = base
+
+--- End of /Users/drjforrest/Development/DevProjects/APIs/File-namer-api/.venv/bin/activate_this.py ---
+
+--- End Project Code ---
