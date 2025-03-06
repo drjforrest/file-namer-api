@@ -3,20 +3,32 @@ from app.models.project_model import create_project, get_db
 
 def generate_project_id(short_title, date_added):
     try:
-        # Try parsing with milliseconds and timezone offset
+        # Try parsing with milliseconds and timezone offset with colon
         try:
+            # First try with colon in timezone offset
             date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%S.%f%z")
         except ValueError:
-            # Try without milliseconds but with timezone offset
             try:
+                # Try without milliseconds but with timezone offset with colon
                 date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%S%z")
             except ValueError:
-                # Try with milliseconds and Z suffix
                 try:
+                    # Try with milliseconds and Z suffix
                     date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
-                    # Finally try without milliseconds and with Z suffix
-                    date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")
+                    try:
+                        # Try without milliseconds and with Z suffix
+                        date_obj = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")
+                    except ValueError:
+                        # Try with milliseconds and timezone offset without colon
+                        try:
+                            # Remove colon from timezone offset
+                            date_str = date_added[:-3] + date_added[-2:]
+                            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+                        except ValueError:
+                            # Finally try without milliseconds and timezone offset without colon
+                            date_str = date_added[:-3] + date_added[-2:]
+                            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S%z")
             
         month, year = date_obj.strftime("%m"), date_obj.strftime("%Y")
 
