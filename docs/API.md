@@ -5,7 +5,7 @@ The File Namer API is a Flask-based service that helps generate standardized pro
 
 ## Base URL
 ```
-http://localhost:5000
+http://localhost:5002
 ```
 
 ## Authentication

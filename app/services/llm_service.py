@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Configure Ollama client with host from environment variable
-ollama.set_host(os.getenv('OLLAMA_HOST', '127.0.0.1'))
+# Set Ollama host from environment variable (including port 11434)
+os.environ['OLLAMA_HOST'] = os.getenv('OLLAMA_HOST', '127.0.0.1:11434')
 
 def infer_file_name(short_title):
     """Uses an LLM to infer a standardized file name based on the title."""
