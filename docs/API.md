@@ -22,13 +22,13 @@ Generates a standardized project ID based on a short title and date.
 ```json
 {
     "short_title": "string",
-    "date_added": "YYYY-MM-DD"
+    "date_added": "YYYY-MM-DDTHH:MM:SS.fffZ"
 }
 ```
 
 **Parameters:**
 - `short_title` (required): A brief title for the project
-- `date_added` (required): The date the project was added in YYYY-MM-DD format
+- `date_added` (required): The date the project was added in ISO 8601 format with timezone (e.g., "2025-03-05T20:21:11.000Z")
 
 **Response:**
 ```json
@@ -40,7 +40,7 @@ Generates a standardized project ID based on a short title and date.
 **Error Response:**
 ```json
 {
-    "error": "string"
+    "error": "Invalid date format. Expected ISO format."
 }
 ```
 
@@ -132,7 +132,7 @@ curl -X POST http://localhost:5000/generate_project_id \
   -H "Content-Type: application/json" \
   -d '{
     "short_title": "Customer Survey Analysis",
-    "date_added": "2024-03-06"
+    "date_added": "2024-03-06T20:21:11.000Z"
   }'
 ```
 
